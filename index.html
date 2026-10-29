@@ -478,13 +478,13 @@
    ========================================================= */
 const API_KEY = "$2a$10$DiJUUhUY3XM987kELaDcfubzqEjeP7H/LTjlwKouoXuwDeLygczu2";
 
-// ID ХМАРИ, ЯКИЙ ВИ НАДАЛИ
+// ID ХМАРИ, ЯКИЙ ВИ НАДАЛИ (Він тепер єдиний і незмінний)
 const FIXED_BIN_ID = "6ae34ca1ffd5d1605395b888"; 
 
-let BIN_ID = FIXED_BIN_ID || localStorage.getItem('jsonbin_bin_id') || "";
+let BIN_ID = FIXED_BIN_ID;
 
 /* =========================================================
-   ДЕФОЛТНІ ДАНІ (Якщо хмара не завантажиться)
+   ДЕФОЛТНІ ДАНІ (Якщо хмара не завантажиться або порожня)
    ========================================================= */
 const DEFAULT_ITEMS = [
   { type: 'header', title: "Вступ до комп'ютерної схемотехніки та мікроелектроніки" },
@@ -918,31 +918,30 @@ document.getElementById('resetDataBtn').addEventListener('click', () => {
 
 /* ================= ІНІЦІАЛІЗАЦІЯ ================= */
 async function init() {
-  BIN_ID = FIXED_BIN_ID || localStorage.getItem('jsonbin_bin_id') || "";
+  // Примусово видаляємо старі збережені ID, щоб телефон не брав неправильну хмару
+  localStorage.removeItem('jsonbin_bin_id');
 
-  if (BIN_ID) {
-    try {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-        method: 'GET',
-        headers: { 'X-Master-Key': API_KEY }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.record && Array.isArray(json.record) && json.record.length > 0) {
-          SIDEBAR_ITEMS = json.record;
-          console.log("Дані успішно завантажено з хмари!");
-        } else {
-           throw new Error("Порожній масив у хмарі");
-        }
+  try {
+    // Додаємо cache: 'no-store', щоб змусити браузер телефону завантажити свіжі дані
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest?t=${Date.now()}`, {
+      method: 'GET',
+      headers: { 'X-Master-Key': API_KEY },
+      cache: 'no-store' 
+    });
+    
+    if (res.ok) {
+      const json = await res.json();
+      if (json.record && Array.isArray(json.record) && json.record.length > 0) {
+        SIDEBAR_ITEMS = json.record;
+        console.log("Дані успішно завантажено з хмари!");
       } else {
-        throw new Error("Помилка завантаження з хмари");
+         throw new Error("Порожній масив у хмарі");
       }
-    } catch (e) {
-      console.warn("Не вдалося завантажити з хмари. Використовуємо локальні дані.", e);
-      const localData = JSON.parse(localStorage.getItem('sidebar_data_v3'));
-      SIDEBAR_ITEMS = (localData && localData.length > 0) ? localData : DEFAULT_ITEMS;
+    } else {
+      throw new Error("Помилка завантаження з хмари");
     }
-  } else {
+  } catch (e) {
+    console.warn("Не вдалося завантажити з хмари. Використовуємо локальні дані.", e);
     const localData = JSON.parse(localStorage.getItem('sidebar_data_v3'));
     SIDEBAR_ITEMS = (localData && localData.length > 0) ? localData : DEFAULT_ITEMS;
   }
