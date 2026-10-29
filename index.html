@@ -25,7 +25,7 @@
     border-bottom:1px solid var(--border);
     box-shadow:0 4px 26px rgba(0,0,0,.5);
     position:relative; z-index:40;
-    user-select: none; /* Забороняє виділення тексту */
+    user-select: none;
   }
   .brand{display:flex; align-items:center; gap:14px; min-width:0}
   .brand-mark{
@@ -33,11 +33,6 @@
     display:grid; place-items:center; font-size:1.25rem;
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
     color:#06101f; box-shadow:0 0 22px rgba(79,156,249,.35);
-  }
-  .brand-text{min-width:0; display:flex; align-items:center;}
-  .brand-text h1{
-    font-size:1.02rem; font-weight:600; letter-spacing:.2px;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   
   .admin-btn {
@@ -262,7 +257,6 @@
     .menu-toggle{display:grid}
     .sidebar{ position:fixed; top:var(--header-h); left:0; bottom:0; width:290px; flex-basis:290px; transform:translateX(-102%); transition:transform .26s cubic-bezier(.4,0,.2,1); box-shadow:0 0 50px rgba(0,0,0,.7); }
     .sidebar.open{transform:none}
-    .brand-text h1{font-size:.9rem}
     .toolbar{padding:10px 16px}
     .viewer{padding:12px 16px 16px}
     .empty{inset:12px 16px 16px}
@@ -277,10 +271,8 @@
     <div style="display:flex; align-items:center; gap:14px;">
       <button class="menu-toggle" id="menuToggle" aria-label="Відкрити меню">☰</button>
       <div class="brand">
+        <!-- Залишено лише іконку, текст заголовку видалено -->
         <div class="brand-mark">⚙</div>
-        <div class="brand-text">
-          <h1>Комп’ютерна схемотехніка та архітектура комп’ютера</h1>
-        </div>
       </div>
     </div>
     <button class="admin-btn" id="openAdminBtn">⚙️ Адмін-панель</button>
