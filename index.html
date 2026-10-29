@@ -25,7 +25,7 @@
     border-bottom:1px solid var(--border);
     box-shadow:0 4px 26px rgba(0,0,0,.5);
     position:relative; z-index:40;
-    user-select: none; /* Забороняє виділення тексту */
+    user-select: none;
   }
   .brand{display:flex; align-items:center; gap:14px; min-width:0}
   .brand-mark{
@@ -278,7 +278,6 @@
       <button class="menu-toggle" id="menuToggle" aria-label="Відкрити меню">☰</button>
       <div class="brand">
         <div class="brand-mark">⚙</div>
-        <!-- Тільки назва предмету, без підзаголовка -->
         <div class="brand-text">
           <h1>Комп’ютерна схемотехніка та архітектура комп’ютера</h1>
         </div>
@@ -905,7 +904,7 @@ document.getElementById('addItemBtn').addEventListener('click', () => {
 });
 
 function saveAdminData() {
-  localStorage.setItem('sidebar_data_v2', JSON.stringify(SIDEBAR_ITEMS));
+  localStorage.setItem('sidebar_data_v3', JSON.stringify(SIDEBAR_ITEMS));
   buildMenu();
   renderAdmin();
 }
@@ -921,7 +920,7 @@ document.getElementById('exportDataBtn').addEventListener('click', () => {
 
 document.getElementById('resetDataBtn').addEventListener('click', () => {
   if (confirm('УВАГА! Це видалить всі ваші зміни і поверне стандартний список. Продовжити?')) {
-    localStorage.removeItem('sidebar_data_v2');
+    localStorage.removeItem('sidebar_data_v3');
     SIDEBAR_ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
     saveAdminData();
   }
@@ -930,6 +929,12 @@ document.getElementById('resetDataBtn').addEventListener('click', () => {
 
 /* ================= ІНІЦІАЛІЗАЦІЯ ================= */
 async function init() {
+  // Очищаємо можливі збої в localStorage
+  if (localStorage.getItem('jsonbin_bin_id') === 'undefined' || localStorage.getItem('jsonbin_bin_id') === 'null') {
+      localStorage.removeItem('jsonbin_bin_id');
+      BIN_ID = "";
+  }
+
   // Спочатку перевіряємо, чи є збережений ID хмари
   if (BIN_ID) {
     try {
@@ -939,22 +944,25 @@ async function init() {
       });
       if (res.ok) {
         const json = await res.json();
-        if (json.record && Array.isArray(json.record)) {
+        // Перевіряємо, чи масив не порожній, щоб уникнути зникнення меню
+        if (json.record && Array.isArray(json.record) && json.record.length > 0) {
           SIDEBAR_ITEMS = json.record;
           console.log("Дані успішно завантажено з хмари!");
         } else {
-           throw new Error("Неправильний формат даних у хмарі");
+           throw new Error("Порожній масив у хмарі");
         }
       } else {
         throw new Error("Помилка завантаження з хмари");
       }
     } catch (e) {
-      console.warn("Не вдалося завантажити з хмари. Використовуємо локальні дані.", e);
-      SIDEBAR_ITEMS = JSON.parse(localStorage.getItem('sidebar_data_v2')) || DEFAULT_ITEMS;
+      console.warn("Не вдалося завантажити з хмари. Використовуємо локальні дані або стандартні.", e);
+      const localData = JSON.parse(localStorage.getItem('sidebar_data_v3'));
+      SIDEBAR_ITEMS = (localData && localData.length > 0) ? localData : DEFAULT_ITEMS;
     }
   } else {
     // Якщо хмари немає, беремо з пам'яті браузера або дефолтні
-    SIDEBAR_ITEMS = JSON.parse(localStorage.getItem('sidebar_data_v2')) || DEFAULT_ITEMS;
+    const localData = JSON.parse(localStorage.getItem('sidebar_data_v3'));
+    SIDEBAR_ITEMS = (localData && localData.length > 0) ? localData : DEFAULT_ITEMS;
   }
 
   buildMenu();
