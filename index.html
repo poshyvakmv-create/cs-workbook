@@ -25,6 +25,7 @@
     border-bottom:1px solid var(--border);
     box-shadow:0 4px 26px rgba(0,0,0,.5);
     position:relative; z-index:40;
+    user-select: none; /* Забороняє виділення тексту */
   }
   .brand{display:flex; align-items:center; gap:14px; min-width:0}
   .brand-mark{
@@ -33,15 +34,12 @@
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
     color:#06101f; box-shadow:0 0 22px rgba(79,156,249,.35);
   }
-  .brand-text{min-width:0}
+  .brand-text{min-width:0; display:flex; align-items:center;}
   .brand-text h1{
     font-size:1.02rem; font-weight:600; letter-spacing:.2px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .brand-text span{
-    display:block; font-size:.74rem; color:var(--muted); margin-top:3px;
-    letter-spacing:.06em; text-transform:uppercase;
-  }
+  
   .admin-btn {
     background: rgba(255,255,255,0.05); border: 1px solid var(--border);
     color: var(--muted); padding: 8px 16px; border-radius: 8px;
@@ -265,7 +263,6 @@
     .sidebar{ position:fixed; top:var(--header-h); left:0; bottom:0; width:290px; flex-basis:290px; transform:translateX(-102%); transition:transform .26s cubic-bezier(.4,0,.2,1); box-shadow:0 0 50px rgba(0,0,0,.7); }
     .sidebar.open{transform:none}
     .brand-text h1{font-size:.9rem}
-    .brand-text span{display:none}
     .toolbar{padding:10px 16px}
     .viewer{padding:12px 16px 16px}
     .empty{inset:12px 16px 16px}
@@ -283,7 +280,6 @@
         <div class="brand-mark">⚙</div>
         <div class="brand-text">
           <h1>Комп’ютерна схемотехніка та архітектура комп’ютера</h1>
-          <span>Лекції · 16 практичних · Симулятор</span>
         </div>
       </div>
     </div>
@@ -498,7 +494,6 @@ const DEFAULT_ITEMS = [
   { type: 'theory', id: 't24', title: "Портативні комп'ютери.", slidesId: "", active: true }
 ];
 
-// Змінено ключ на v2, щоб браузер одразу підтягнув нові дані
 let SIDEBAR_ITEMS = JSON.parse(localStorage.getItem('sidebar_data_v2')) || DEFAULT_ITEMS;
 
 /* ================= URL ФОРМУВАННЯ ================= */
