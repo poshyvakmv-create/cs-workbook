@@ -394,18 +394,21 @@
       <div class="admin-form" style="border-color:var(--accent-2); background:rgba(34,211,238,0.05);">
         <h3 style="color:var(--accent-2);">☁️ Оновлення для всіх (Хмара)</h3>
         <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px; line-height:1.5;">
-          Щоб зміни побачили всі користувачі, збережіть їх у хмару. <br>
-          Якщо ви це робите вперше — натисніть <b>"Створити нову хмару"</b>, отримайте ID і вставте його в код HTML (змінна <code>CLOUD_ID</code> на початку скрипта).
+          Щоб зміни побачили всі користувачі, збережіть їх у хмару. Для цього введіть ваш API-ключ від <b>jsonbin.io</b> та створіть нову хмару.
         </p>
         <div class="form-row">
           <div class="form-group">
-            <label>ID Хмари (Cloud ID)</label>
-            <input type="text" id="cloudIdInput" placeholder="Введіть ID хмари..." value="">
+            <label>API-ключ (JSONBin.io)</label>
+            <input type="password" id="apiKeyInput" placeholder="Введіть ваш Master Key...">
           </div>
           <div class="form-group" style="justify-content:flex-end; flex-direction:row; gap:10px;">
              <button class="btn" onclick="createCloud()">Створити нову</button>
              <button class="btn primary" onclick="updateCloud()">☁️ Опублікувати зміни</button>
           </div>
+        </div>
+        <div class="form-group">
+          <label>ID Хмари (Cloud ID)</label>
+          <input type="text" id="cloudIdInput" placeholder="Введіть ID хмари...">
         </div>
       </div>
 
@@ -456,9 +459,10 @@
 
 <script>
 /* =========================================================
-   УВАГА! ВСТАВТЕ ID ХМАРИ СЮДИ, ЩОБ ЗМІНИ БАЧИЛИ ВСІ:
+   НАЛАШТУВАННЯ ХМАРИ (JSONBin.io)
    ========================================================= */
-const CLOUD_ID = ""; // Наприклад: "1234567890"
+let CLOUD_ID = localStorage.getItem('jsonbin_id') || ""; // ID хмари
+let API_KEY = localStorage.getItem('jsonbin_key') || "";  // Ваш API-ключ
 
 /* =========================================================
    ДЕФОЛТНІ ДАНІ
@@ -511,7 +515,7 @@ const DEFAULT_ITEMS = [
 ];
 
 /* ================= ІНІЦІАЛІЗАЦІЯ ДАНИХ ================= */
-let SIDEBAR_ITEMS = []; // Заповниться під час ініціалізації
+let SIDEBAR_ITEMS = [];
 
 /* ================= URL ФОРМУВАННЯ ================= */
 const pdfURLs = (fileId) => ({
@@ -626,322 +630,4 @@ function openTheory(id) {
     viewer.src = urls.embed;
     enableBtn(openBtn, urls.view, 'Відкрити презентацію');
     enableBtn(pdfBtn, urls.pdf, 'Завантажити PDF');
-    enableBtn(wordBtn, urls.pptx, 'Завантажити PPTX');
-  } else {
-    viewer.classList.remove('show'); viewer.removeAttribute('src'); loader.classList.remove('show');
-    emptyState.innerHTML = theoryNotReadyHTML(item.title); emptyState.classList.remove('hide');
-    disableBtn(openBtn); disableBtn(pdfBtn); disableBtn(wordBtn);
-  }
-  history.replaceState(null, '', `#theory-${id}`); closeSidebar();
-}
-
-function openPractical(n) {
-  const p = SIDEBAR_ITEMS.find(x => x.type === 'practical' && x.n === n);
-  if (!p) return;
-  const hasPdf = Boolean(p.pdfId), hasWord = Boolean(p.docId);
-  simPage.classList.remove('show');
-  navEl.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.n) === n));
-
-  docTitle.textContent = `Практична робота ${n}`;
-  docSub.textContent = p.topic + (hasPdf && hasWord ? ' · PDF + Word' : hasPdf ? ' · PDF' : hasWord ? ' · Word' : ' · у розробці');
-  openBtn.innerHTML = '↗ Відкрити'; pdfBtn.innerHTML = '⬇ PDF'; wordBtn.innerHTML = '⬇ Word';
-
-  if (hasPdf) {
-    const urls = pdfURLs(p.pdfId);
-    emptyState.classList.add('hide'); loader.classList.add('show'); viewer.classList.add('show');
-    viewer.src = urls.preview;
-    enableBtn(openBtn, urls.view, 'Відкрити PDF'); enableBtn(pdfBtn, urls.download, 'Завантажити PDF');
-  } else {
-    viewer.classList.remove('show'); viewer.removeAttribute('src'); loader.classList.remove('show');
-    emptyState.innerHTML = notReadyHTML(n, p.topic); emptyState.classList.remove('hide');
-    disableBtn(openBtn); disableBtn(pdfBtn);
-  }
-  if (hasWord) enableBtn(wordBtn, wordDownloadURL(p.docId), 'Завантажити Word');
-  else disableBtn(wordBtn);
-  history.replaceState(null, '', `#pr-${n}`); closeSidebar();
-}
-
-function openSimulator() {
-  viewer.classList.remove('show'); viewer.removeAttribute('src'); emptyState.classList.add('hide'); loader.classList.remove('show');
-  simPage.classList.add('show');
-  navEl.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.sim === '1'));
-  docTitle.textContent = 'Симулятор електронних схем'; docSub.textContent = 'NI Multisim 14.2 Professional · онлайн-демонстрація';
-  openBtn.innerHTML = '↗ Відкрити'; pdfBtn.innerHTML = '⬇ PDF'; wordBtn.innerHTML = '⬇ Word';
-  disableBtn(openBtn); disableBtn(pdfBtn); disableBtn(wordBtn);
-  history.replaceState(null, '', '#sim'); closeSidebar();
-}
-
-/* ================= МОБІЛЬНЕ МЕНЮ ================= */
-function openSidebar() { sidebar.classList.add('open'); backdrop.classList.add('show'); }
-function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
-menuToggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-backdrop.addEventListener('click', closeSidebar);
-viewer.addEventListener('load', () => loader.classList.remove('show'));
-
-
-/* =========================================================
-   ЛОГІКА АДМІН-ПАНЕЛІ ТА ЛОГІНУ
-   ========================================================= */
-const adminPanel = document.getElementById('adminPanel');
-const adminList = document.getElementById('adminList');
-const addType = document.getElementById('addType');
-const practicalFields = document.getElementById('practicalFields');
-const wordIdField = document.getElementById('wordIdField');
-const loginModal = document.getElementById('loginModal');
-const loginError = document.getElementById('loginError');
-const cloudIdInput = document.getElementById('cloudIdInput');
-
-// --- ЛОГІН ---
-document.getElementById('openAdminBtn').addEventListener('click', () => {
-  if (sessionStorage.getItem('adminLogged') === 'true') {
-    adminPanel.classList.add('show');
-    renderAdmin();
-  } else {
-    loginModal.classList.add('show');
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    loginError.style.display = 'none';
-    document.getElementById('loginUser').focus();
-  }
-});
-
-function attemptLogin() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value.trim();
-
-  if (user === 'PMV' && pass === 'q!123456') {
-    sessionStorage.setItem('adminLogged', 'true');
-    loginModal.classList.remove('show');
-    adminPanel.classList.add('show');
-    renderAdmin();
-    cloudIdInput.value = CLOUD_ID; // Показуємо поточний ID
-  } else {
-    loginError.style.display = 'block';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
-  }
-}
-
-document.getElementById('loginSubmit').addEventListener('click', attemptLogin);
-document.getElementById('loginPass').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') attemptLogin();
-});
-
-document.getElementById('loginCancel').addEventListener('click', () => {
-  loginModal.classList.remove('show');
-});
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('adminLogged');
-  adminPanel.classList.remove('show');
-  alert('Ви вийшли з адмін-панелі.');
-});
-
-document.getElementById('closeAdminBtn').addEventListener('click', () => adminPanel.classList.remove('show'));
-
-// --- ХМАРНІ ФУНКЦІЇ ---
-async function createCloud() {
-  if(!confirm("Це створить нову хмару з поточними даними. Продовжити?")) return;
-  try {
-    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(SIDEBAR_ITEMS)
-    });
-    if (res.status === 201) {
-      const location = res.headers.get('Location');
-      const id = location ? location.split('/').pop() : 'unknown';
-      cloudIdInput.value = id;
-      alert(`✅ Хмару успішно створено!\n\nВаш ID: ${id}\n\nТепер відкрийте файл HTML, знайдіть на початку скрипта рядок CLOUD_ID = "" і вставте цей ID всередину лапок. Це потрібно зробити 1 раз.`);
-    } else {
-      alert("Помилка створення хмари.");
-    }
-  } catch(e) {
-    console.error(e);
-    alert("Помилка з'єднання з хмарою.");
-  }
-}
-
-async function updateCloud() {
-  const id = cloudIdInput.value.trim();
-  if (!id) return alert("Введіть ID хмари!");
-  try {
-    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(SIDEBAR_ITEMS)
-    });
-    if (res.ok) {
-      alert("✅ Успішно опубліковано! Всі користувачі побачать зміни після оновлення сторінки.");
-    } else {
-      alert("Помилка оновлення. Перевірте правильність ID хмари.");
-    }
-  } catch(e) {
-    console.error(e);
-    alert("Помилка з'єднання з хмарою.");
-  }
-}
-
-// --- РЕДАКТОР ---
-addType.addEventListener('change', (e) => {
-  if (e.target.value === 'practical') {
-    practicalFields.style.display = 'grid';
-    wordIdField.style.display = 'flex';
-  } else {
-    practicalFields.style.display = 'none';
-    wordIdField.style.display = 'none';
-  }
-});
-
-function renderAdmin() {
-  adminList.innerHTML = '';
-  SIDEBAR_ITEMS.forEach((item, index) => {
-    if (item.type === 'header') {
-      const div = document.createElement('div');
-      div.className = 'nav-header';
-      div.style.margin = '10px 0 5px';
-      div.textContent = item.title;
-      adminList.appendChild(div);
-      return;
-    }
-
-    const el = document.createElement('div');
-    el.className = 'admin-item';
-    
-    const isChecked = item.active !== false ? 'checked' : '';
-    const typeLabel = item.type === 'theory' ? '📊 Презентація' : `📁 Практ. №${item.n}`;
-    const titleStr = item.type === 'theory' ? item.title : item.topic;
-    const fileId = item.type === 'theory' ? item.slidesId : item.pdfId;
-    
-    el.innerHTML = `
-      <div class="admin-item-info">
-        <h4>${typeLabel} - ${titleStr}</h4>
-        <p>ID файлу: ${fileId || '<span style="color:#c78a3f">(Порожньо)</span>'}</p>
-      </div>
-      <div class="admin-item-actions">
-        <label class="checkbox-group">
-          <input type="checkbox" data-index="${index}" ${isChecked} onchange="toggleActive(${index}, this.checked)">
-          Видимий
-        </label>
-        <button class="btn btn-del" onclick="deleteItem(${index})">Видалити</button>
-      </div>
-    `;
-    adminList.appendChild(el);
-  });
-}
-
-window.toggleActive = function(index, isChecked) {
-  SIDEBAR_ITEMS[index].active = isChecked;
-  saveAdminData();
-};
-
-window.deleteItem = function(index) {
-  if(confirm('Ви впевнені, що хочете видалити цей матеріал?')) {
-    SIDEBAR_ITEMS.splice(index, 1);
-    saveAdminData();
-  }
-};
-
-document.getElementById('addItemBtn').addEventListener('click', () => {
-  const type = addType.value;
-  const title = document.getElementById('addTitle').value.trim();
-  const fileId = document.getElementById('addFileId').value.trim();
-  const docId = document.getElementById('addDocId').value.trim();
-  const num = parseInt(document.getElementById('addNumber').value);
-
-  if (!title) return alert('Введіть назву/тему!');
-
-  if (type === 'theory') {
-    SIDEBAR_ITEMS.push({
-      type: 'theory',
-      id: 't' + Date.now(),
-      title: title,
-      slidesId: fileId,
-      active: true
-    });
-  } else {
-    if (!num) return alert('Введіть номер практичної!');
-    SIDEBAR_ITEMS.push({
-      type: 'practical',
-      n: num,
-      topic: title,
-      pdfId: fileId,
-      docId: docId,
-      active: true
-    });
-  }
-
-  document.getElementById('addTitle').value = '';
-  document.getElementById('addFileId').value = '';
-  document.getElementById('addDocId').value = '';
-  document.getElementById('addNumber').value = '';
-  
-  saveAdminData();
-});
-
-function saveAdminData() {
-  localStorage.setItem('sidebar_data_v2', JSON.stringify(SIDEBAR_ITEMS));
-  buildMenu();
-  renderAdmin();
-}
-
-document.getElementById('exportDataBtn').addEventListener('click', () => {
-  const output = document.getElementById('adminOutput');
-  output.style.display = 'block';
-  output.value = JSON.stringify(SIDEBAR_ITEMS, null, 2);
-  output.select();
-  document.execCommand('copy');
-  alert('Код скопійовано в буфер обміну! Вставте його у файл замість DEFAULT_ITEMS.');
-});
-
-document.getElementById('resetDataBtn').addEventListener('click', () => {
-  if (confirm('УВАГА! Це видалить всі ваші зміни і поверне стандартний список. Продовжити?')) {
-    localStorage.removeItem('sidebar_data_v2');
-    SIDEBAR_ITEMS = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-    saveAdminData();
-  }
-});
-
-
-/* ================= ІНІЦІАЛІЗАЦІЯ ================= */
-async function init() {
-  // 1. Спробуємо завантажити з хмари, якщо є ID
-  if (CLOUD_ID) {
-    try {
-      const res = await fetch(`https://jsonblob.com/api/jsonBlob/${CLOUD_ID}`);
-      if (res.ok) {
-        SIDEBAR_ITEMS = await res.json();
-        console.log("Завантажено з хмари");
-      } else {
-        throw new Error("Cloud fetch failed");
-      }
-    } catch (e) {
-      console.warn("Не вдалося завантажити з хмари. Використовуємо локальні дані.", e);
-      SIDEBAR_ITEMS = JSON.parse(localStorage.getItem('sidebar_data_v2')) || DEFAULT_ITEMS;
-    }
-  } else {
-    // 2. Якщо хмари немає, беремо з пам'яті або дефолт
-    SIDEBAR_ITEMS = JSON.parse(localStorage.getItem('sidebar_data_v2')) || DEFAULT_ITEMS;
-  }
-
-  buildMenu();
-  renderAdmin();
-  emptyState.innerHTML = defaultEmptyHTML();
-
-  // 3. Перевірка URL на відкриття конкретного матеріалу
-  const hash = location.hash;
-  if (hash === '#sim') {
-    requestAnimationFrame(openSimulator);
-  } else {
-    const m = hash.match(/^#pr-(\d+)$/);
-    const mt = hash.match(/^#theory-(.+)$/);
-    if (m) requestAnimationFrame(() => openPractical(Number(m[1])));
-    else if (mt) requestAnimationFrame(() => openTheory(mt[1]));
-  }
-}
-
-// Запускаємо!
-init();
-</script>
-</body>
-</html>
+    enableBtn(wordBtn, urls.pptx
