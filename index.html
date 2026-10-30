@@ -236,7 +236,6 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-head">Навігація</div>
       <nav class="nav" id="nav"></nav>
-      <!-- Тут залишився тільки розробник -->
       <div class="sidebar-foot">
         Розробник: Микола Пошивак
       </div>
@@ -317,7 +316,7 @@
 
 <script>
 /* =========================================================
-   БАЗА ДАНИХ МАТЕРІАЛІВ (Редагуйте тут)
+   БАЗА ДАНИХ МАТЕРІАЛІВ
    ========================================================= */
 const SIDEBAR_ITEMS = [
   { type: 'header', title: "Вступ до комп'ютерної схемотехніки та мікроелектроніки" },
@@ -452,7 +451,8 @@ function buildMenu() {
       btn.className = 'nav-btn' + (isPending ? ' pending' : '');
       btn.dataset.n = item.n;
       btn.title = `Практична робота ${item.n} — ${item.topic}`;
-      btn.innerHTML = `<span class="num">${item.n}</span><span class="lbl"><span class="t">Практична робота ${item.n}</span><span class="s">${item.topic}</span></span>`;
+      // ВИПРАВЛЕНО: використовується displayNum замість item.n
+      btn.innerHTML = `<span class="num">${displayNum}</span><span class="lbl"><span class="t">Практична робота ${item.n}</span><span class="s">${item.topic}</span></span>`;
       btn.addEventListener('click', () => openPractical(item.n));
     }
     frag.appendChild(btn);
